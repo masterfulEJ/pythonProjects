@@ -1,0 +1,21 @@
+# Startups
+$ git config --global user.name "lateBloomer"
+$ git config --global user.email "eunjaejang@gmail.com"
+$ git config --global core.editor vim
+$ git config --list
+
+# Set folder for git & clone
+$ cd /c/git/
+$ ls
+$ git clone https://github.com/masterfulEJ/pythonProjects.git
+$ cd pythonProjects/
+$ touch test.txt	#make file
+
+# Try Adding files
+$ git add test.txt
+$ git status
+$ git commit -m "first trial of commit" test.txt
+$ git push -u origin master
+
+# Also Modify
+$ git commit -m "modified commit" test.txt
