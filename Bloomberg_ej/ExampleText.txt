@@ -1,0 +1,26 @@
+
+import blpapi
+import pandas as pd
+import numpy as np
+
+from datetime import datetime
+from pandas import Series
+from pandas import DataFrame
+
+bloomberg = utils_blpapi.BLP()
+
+bloomberg.bdp(['IBM US Equity', 'AAPL US Equity'],'name')
+bloomberg.bdp(['IBM US Equity', 'AAPL US Equity'],'BEST_EPS',{'BEST_FPERIOD_OVERRIDE':'1FQ'})
+bloomberg.bdp(['IBM US Equity', 'AAPL US Equity'],'BEST_EPS',{'BEST_FPERIOD_OVERRIDE':'2FQ'})
+bloomberg.bdp('US900123AL40 Govt', 'YLD_YTM_BID', {'PX_BID':'200'})
+bloomberg.bdp('US900123AL40 Govt', 'YLD_YTM_BID', {'PX_BID':'153.1250'})
+
+
+bloomberg.bds('MXKR Index','INDX_MWEIGHT')
+bloomberg.bds('MXKR Index','INDX_MWEIGHT_HIST',{'end_date_override':datetime(2017,2,17)})
+bloomberg.bds(['MXKR Index', 'MXCN Index'],'INDX_MWEIGHT')
+
+
+bloomberg.bdh('AAPL US Equity', 'PX_LAST', '20141231', '20150131')
+bloomberg.bdh('AAPL US Equity', 'PX_LAST', '20141231', '20150131', currency="KRW")
+bloomberg.bdh('AAPL US Equity', 'PCT_CHG_INSIDER_HOLDINGS', '20141231', '20150131', periodicitySelection='WEEKLY')
