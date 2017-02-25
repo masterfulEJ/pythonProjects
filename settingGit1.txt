@@ -19,3 +19,8 @@ $ git push -u origin master
 
 # Also Modify
 $ git commit -m "modified commit" test.txt
+
+# Delete file
+git rm -r text_mac.txt
+git commit -m “unneeded file”
+git push -u origin master
