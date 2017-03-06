@@ -1,4 +1,4 @@
-# Startups
+﻿# Startups
 $ git config --global user.name "lateBloomer"
 $ git config --global user.email "eunjaejang@gmail.com"
 $ git config --global core.editor vim
@@ -24,3 +24,6 @@ $ git commit -m "modified commit" test.txt
 git rm -r text_mac.txt
 git commit -m “unneeded file”
 git push -u origin master
+
+# to bring things from URL
+git pull https://github.com/masterfulEJ/pythonProjects.git
