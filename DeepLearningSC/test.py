@@ -24,7 +24,7 @@ training_data = list(training_data)
 '''
 # ---------------------
 # - network.py example:
-#import network
+# import network
 
 '''
 net = network.Network([784, 30, 10])
@@ -33,7 +33,7 @@ net.SGD(training_data, 30, 10, 3.0, test_data=test_data)
 
 # ----------------------
 # - network2.py example:
-#import network2
+# import network2
 
 '''
 net = network2.Network([784, 30, 10], cost=network2.CrossEntropyCost)
@@ -150,7 +150,7 @@ def testTheano():
     else:
         print('Used the gpu')
 # Perform check:
-#testTheano()
+# testTheano()
 
 
 # ----------------------
