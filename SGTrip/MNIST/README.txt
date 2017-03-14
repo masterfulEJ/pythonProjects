@@ -1,0 +1,1 @@
+The MNIST data file called "mnist.pkl.gz" can be downloaded at the url: https://github.com/mnielsen
