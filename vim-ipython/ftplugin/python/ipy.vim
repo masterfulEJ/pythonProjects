@@ -1,0 +1,209 @@
+" Vim integration with IPython 0.11+
+"
+" A two-way integration between Vim and IPython.
+"
+" Using this plugin, you can send lines or whole files for IPython to execute,
+" and also get back object introspection and word completions in Vim, like
+" what you get with: object?<enter> object.<tab> in IPython
+"
+" -----------------
+" Quickstart Guide:
+" -----------------
+" Start `ipython qtconsole`, `ipython console`, or  `ipython notebook` and
+" open a notebook using you web browser.  Source this file, which provides new
+" IPython command
+"
+"   :source ipy.vim
+"   :IPython
+"
+" written by Paul Ivanov (http://pirsquared.org)
+"
+if !has('python3')
+    " exit if python is not available.
+    " XXX: raise an error message here
+    finish
+endif
+
+" Allow custom mappings.
+if !exists('g:ipy_perform_mappings')
+    let g:ipy_perform_mappings = 1
+endif
+
+" Register IPython completefunc
+" 'global'   -- for all of vim (default).
+" 'local'    -- only for the current buffer.
+" otherwise  -- don't register it at all.
+"
+" you can later set it using ':set completefunc=CompleteIPython', which will
+" correspond to the 'global' behavior, or with ':setl ...' to get the 'local'
+" behavior
+if !exists('g:ipy_completefunc')
+    let g:ipy_completefunc = 'global'
+endif
+
+python3 << EOF
+import vim
+import sys
+vim_ipython_path = vim.eval("expand('<sfile>:h')")
+sys.path.append(vim_ipython_path)
+from vim_ipython import *
+
+EOF
+
+fun! <SID>toggle_send_on_save()
+    if exists("s:ssos") && s:ssos == 0
+        let s:ssos = 1
+        au BufWritePost *.py :py run_this_file()
+        echo "Autosend On"
+    else
+        let s:ssos = 0
+        au! BufWritePost *.py
+        echo "Autosend Off"
+    endif
+endfun
+
+" Update the vim-ipython shell when the cursor is not moving.
+" You can change how quickly this happens after you stop moving the cursor by
+" setting 'updatetime' (in milliseconds). For example, to have this event
+" trigger after 1 second:
+"
+"       :set updatetime 1000
+"
+" NOTE: This will only be triggered once, after the first 'updatetime'
+" milliseconds, *not* every 'updatetime' milliseconds. see :help CursorHold
+" for more info.
+"
+" TODO: Make this easily configurable on the fly, so that an introspection
+" buffer we may have opened up doesn't get closed just because of an idle
+" event (i.e. user pressed \d and then left the buffer that popped up, but
+" expects it to stay there).
+au CursorHold *.*,vim-ipython :python3 if update_subchannel_msgs(): echo("vim-ipython shell updated (on idle)",'Operator')
+
+" XXX: broken - cursor hold update for insert mode moves the cursor one
+" character to the left of the last character (update_subchannel_msgs must be
+" doing this)
+"au CursorHoldI *.* :python if update_subchannel_msgs(): echo("vim-ipython shell updated (on idle)",'Operator')
+
+" Same as above, but on regaining window focus (mostly for GUIs)
+au FocusGained *.*,vim-ipython :python3 if update_subchannel_msgs(): echo("vim-ipython shell updated (on input focus)",'Operator')
+
+" Update vim-ipython buffer when we move the cursor there. A message is only
+" displayed if vim-ipython buffer has been updated.
+au BufEnter vim-ipython :python3 if update_subchannel_msgs(): echo("vim-ipython shell updated (on buffer enter)",'Operator')
+
+" Setup plugin mappings for the most common ways to interact with ipython3.
+noremap  <Plug>(IPython-RunFile)            :python3 run_this_file()<CR>
+noremap  <Plug>(IPython-RunLine)            :python3 run_this_line()<CR>
+noremap  <Plug>(IPython-RunLines)           :python3 run_these_lines()<CR>
+noremap  <Plug>(IPython-OpenPyDoc)          :python3 get_doc_buffer()<CR>
+noremap  <Plug>(IPython-UpdateShell)        :python3 if update_subchannel_msgs(force=True): echo("vim-ipython3 shell updated",'Operator')<CR>
+noremap  <Plug>(IPython-ToggleReselect)     :python3 toggle_reselect()<CR>
+"noremap  <Plug>(IPython-StartDebugging)     :python3 send('%pdb')<CR>
+"noremap  <Plug>(IPython-BreakpointSet)      :python3 set_breakpoint()<CR>
+"noremap  <Plug>(IPython-BreakpointClear)    :python3 clear_breakpoint()<CR>
+"noremap  <Plug>(IPython-DebugThisFile)      :python3 run_this_file_pdb()<CR>
+"noremap  <Plug>(IPython-BreakpointClearAll) :python3 clear_all_breaks()<CR>
+noremap  <Plug>(IPython-ToggleSendOnSave)   :call <SID>toggle_send_on_save()<CR>
+noremap  <Plug>(IPython-PlotClearCurrent)   :python3 run_command("plt.clf()")<CR>
+noremap  <Plug>(IPython-PlotCloseAll)       :python3 run_command("plt.close('all')")<CR>
+noremap  <Plug>(IPython-RunLineAsTopLevel)  :python3 dedent_run_this_line()<CR>
+xnoremap <Plug>(IPython-RunLinesAsTopLevel) :python3 dedent_run_these_lines()<CR>
+
+if g:ipy_perform_mappings != 0
+    map   <silent> <F5>           <Plug>(IPython-RunFile)
+    map   <silent> <S-F5>         <Plug>(IPython-RunLine)
+    map   <silent> <F9>           <Plug>(IPython-RunLines)
+    map   <silent> <LocalLeader>d <Plug>(IPython-OpenPyDoc)
+    map   <silent> <LocalLeader>s <Plug>(IPython-UpdateShell)
+    map   <silent> <S-F9>         <Plug>(IPython-ToggleReselect)
+    "map   <silent> <C-F6>         <Plug>(IPython-StartDebugging)
+    "map   <silent> <F6>           <Plug>(IPython-BreakpointSet)
+    "map   <silent> <S-F6>         <Plug>(IPython-BreakpointClear)
+    "map   <silent> <F7>           <Plug>(IPython-DebugThisFile)
+    "map   <silent> <S-F7>         <Plug>(IPython-BreakpointClearAll)
+    imap           <C-F5>         <C-o><Plug>(IPython-RunFile)
+    imap           <S-F5>         <C-o><Plug>(IPython-RunLines)
+    imap  <silent> <F5>           <C-o><Plug>(IPython-RunFile)
+    map            <C-F5>         <Plug>(IPython-ToggleSendOnSave)
+    "" Example of how to quickly clear the current plot with a keystroke
+    "map   <silent> <F12>          <Plug>(IPython-PlotClearCurrent)
+    "" Example of how to quickly close all figures with a keystroke
+    "map   <silent> <F11>          <Plug>(IPython-PlotCloseAll)
+
+    "pi custom
+    map   <silent> <C-Return>     <Plug>(IPython-RunFile)
+    map   <silent> <C-s>          <Plug>(IPython-RunLine)
+    imap  <silent> <C-s>          <C-o><Plug>(IPython-RunLine)
+    map   <silent> <M-s>          <Plug>(IPython-RunLineAsTopLevel)
+    xmap  <silent> <C-S>          <Plug>(IPython-RunLines)
+    xmap  <silent> <M-s>          <Plug>(IPython-RunLinesAsTopLevel)
+
+    noremap   <silent> <M-c>      I#<ESC>
+    xnoremap  <silent> <M-c>      I#<ESC>
+    noremap   <silent> <M-C>      :s/^\([ \t]*\)#/\1/<CR>
+    xnoremap  <silent> <M-C>      :s/^\([ \t]*\)#/\1/<CR>
+endif
+
+command! -nargs=* IPython :py3 km_from_string("<args>")
+command! -nargs=0 IPythonClipboard :py3 km_from_string(vim.eval('@+'))
+command! -nargs=0 IPythonXSelection :py3 km_from_string(vim.eval('@*'))
+command! -nargs=* IPythonNew :py3 new_ipy("<args>")
+command! -nargs=* IPythonInterrupt :py3 interrupt_kernel_hack("<args>")
+command! -nargs=0 IPythonTerminate :py3 terminate_kernel_hack()
+
+function! IPythonBalloonExpr()
+python3 << endpython
+word = vim.eval('v:beval_text')
+reply = get_doc(word)
+vim.command("let l:doc = %s"% reply)
+endpython
+return l:doc
+endfunction
+
+fun! CompleteIPython(findstart, base)
+      if a:findstart
+        " locate the start of the word
+        let line = getline('.')
+        let start = col('.') - 1
+        while start > 0 && line[start-1] =~ '\k\|\.' "keyword
+          let start -= 1
+        endwhile
+        echo start
+        python3 << endpython
+current_line = vim.current.line
+endpython
+        return start
+      else
+        " find months matching with "a:base"
+        let res = []
+        python3 << endpython
+base = vim.eval("a:base")
+findstart = vim.eval("a:findstart")
+matches = ipy_complete(base, current_line, vim.eval("col('.')"))
+# we need to be careful with unicode, because we can have unicode
+# completions for filenames (for the %run magic, for example). So the next
+# line will fail on those:
+#completions= [str(u) for u in matches]
+# because str() won't work for non-ascii characters
+# and we also have problems with unicode in vim, hence the following:
+#completions = [s.encode(vim_encoding) for s in matches]
+completions = [str(s) for s in matches]
+## Additionally, we have no good way of communicating lists to vim, so we have
+## to turn in into one long string, which can be problematic if e.g. the
+## completions contain quotes. The next line will not work if some filenames
+## contain quotes - but if that's the case, the user's just asking for
+## it, right?
+#completions = '["'+ '", "'.join(completions)+'"]'
+#vim.command("let completions = %s" % completions)
+## An alternative for the above, which will insert matches one at a time, so
+## if there's a problem with turning a match into a string, it'll just not
+## include the problematic match, instead of not including anything. There's a
+## bit more indirection here, but I think it's worth it
+for c in completions:
+    vim.command('call add(res,"'+c+'")')
+endpython
+        "call extend(res,completions) 
+        return res
+      endif
+    endfun
+
