@@ -25,5 +25,12 @@ git rm -r text_mac.txt
 git commit -m “unneeded file”
 git push -u origin master
 
+# Delete folder (local & update)
+rm -rf folder
+git add .
+git commit -a -m "removed folder"
+git push origin master
+
+
 # to bring things from URL
 git pull https://github.com/masterfulEJ/pythonProjects.git
