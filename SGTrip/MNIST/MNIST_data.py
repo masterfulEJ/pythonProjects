@@ -32,7 +32,6 @@ i += 1
 # NEURAL NETWORK
 # Convert Y to dummy
 from keras.utils import np_utils
-
 from keras.models import Sequential
 from keras.layers import Dense, Convolution2D
 from keras.regularizers import WeightRegularizer

@@ -15,7 +15,7 @@ def create_data(dataset, look_back=1):
         a = dataset[i:(i+look_back), 0]
         dataX.append(a)
         dataY.append(dataset[i + look_back, 0])
-    
+
     return numpy.array(dataX), numpy.array(dataY)
 
 # fix random seed for reproducibility
